@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Private Chat</title>
+<style>
+body { font-family: sans-serif; max-width: 500px; margin: auto; }
+#chat { border:1px solid #ccc; height:200px; overflow:auto; padding:5px; }
+</style>
+</head>
+<body>
+
+<h2>🔒 Private Chat</h2>
+
+<button onclick="createLink()">Generate Private Link</button>
+<p id="link"></p>
+
+<div id="chatBox" style="display:none;">
+  <div id="chat"></div>
+  <input id="msg" placeholder="Type message">
+  <button onclick="send()">Send</button>
+</div>
+
+<script>
+const WORKER = "https://private-chat-worker.rk3743169.workers.dev/"; // 👈 change
+
+const params = new URLSearchParams(location.search);
+const room = params.get("room");
+let ws;
+
+if (room) startChat(room);
+
+function createLink() {
+  const id = crypto.randomUUID().slice(0, 8);
+  const url = location.origin + location.pathname + "?room=" + id;
+  document.getElementById("link").innerHTML =
+    `Share this link:<br><a href="${url}">${url}</a>`;
+}
+
+function startChat(room) {
+  document.getElementById("chatBox").style.display = "block";
+  ws = new WebSocket(WORKER + "?room=" + room);
+
+  ws.onmessage = e => {
+    document.getElementById("chat").innerHTML += e.data + "<br>";
+  };
+}
+
+function send() {
+  const m = msg.value;
+  ws.send(m);
+  msg.value = "";
+}
+</script>
+
+</body>
+</html>
